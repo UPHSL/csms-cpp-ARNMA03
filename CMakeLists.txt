@@ -76,4 +76,7 @@ target_sources(${PROJECT_NAME}
 
 # ##############################################################################
 
+include(CTest)
+enable_testing()
+
 add_subdirectory(test)
