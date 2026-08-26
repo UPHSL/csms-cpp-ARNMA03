@@ -1,55 +1,87 @@
 #include "Resident.h"
 
+#include <utility>
+
 Resident::Resident(
-    int id,
-    const std::string& firstName,
-    const std::string& lastName,
-    const std::string& address,
-    const std::string& contactNumber,
-    const std::string& email,
-    ResidentStatus status
+    std::string firstName,
+    std::string lastName,
+    std::string address,
+    std::string contactNumber,
+    std::string email,
+    std::string status,
+    std::optional<int> id
 )
-    : id(id),
-      firstName(firstName),
-      lastName(lastName),
-      address(address),
-      contactNumber(contactNumber),
-      email(email),
-      status(status)
+    : id_(id),
+      firstName_(std::move(firstName)),
+      lastName_(std::move(lastName)),
+      address_(std::move(address)),
+      contactNumber_(std::move(contactNumber)),
+      email_(std::move(email)),
+      status_(std::move(status))
 {
 }
 
-int Resident::getId() const
+std::optional<int> Resident::getId() const
 {
-    return id;
+    return id_;
 }
 
 const std::string& Resident::getFirstName() const
 {
-    return firstName;
+    return firstName_;
 }
 
 const std::string& Resident::getLastName() const
 {
-    return lastName;
+    return lastName_;
 }
 
 const std::string& Resident::getAddress() const
 {
-    return address;
+    return address_;
 }
 
 const std::string& Resident::getContactNumber() const
 {
-    return contactNumber;
+    return contactNumber_;
 }
 
 const std::string& Resident::getEmail() const
 {
-    return email;
+    return email_;
 }
 
-ResidentStatus Resident::getStatus() const
+const std::string& Resident::getStatus() const
 {
-    return status;
+    return status_;
+}
+
+void Resident::setFirstName(const std::string& firstName)
+{
+    firstName_ = firstName;
+}
+
+void Resident::setLastName(const std::string& lastName)
+{
+    lastName_ = lastName;
+}
+
+void Resident::setAddress(const std::string& address)
+{
+    address_ = address;
+}
+
+void Resident::setContactNumber(const std::string& contactNumber)
+{
+    contactNumber_ = contactNumber;
+}
+
+void Resident::setEmail(const std::string& email)
+{
+    email_ = email;
+}
+
+void Resident::setStatus(const std::string& status)
+{
+    status_ = status;
 }
