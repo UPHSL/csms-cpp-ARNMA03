@@ -4,6 +4,7 @@ project(csms_cpp_test CXX)
 add_executable(${PROJECT_NAME} 
     test_main.cc
     ../models/Resident.cc
+    ../models/ResidentValidator.cc
 )
 
 # ##############################################################################

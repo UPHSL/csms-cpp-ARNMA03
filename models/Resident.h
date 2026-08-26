@@ -4,7 +4,8 @@
 
 enum class ResidentStatus
 {
-    Active
+    Active,
+    Inactive
 };
 
 class Resident

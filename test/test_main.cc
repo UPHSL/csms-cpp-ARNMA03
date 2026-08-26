@@ -1,7 +1,10 @@
 #define DROGON_TEST_MAIN
 #include <drogon/drogon_test.h>
 #include <drogon/drogon.h>
-#include "../models/resident.h"
+#include "../models/Resident.h"
+#include "../models/ResidentValidator.h"
+
+// ---- T01 tests (preserved, matching the committed Resident model) ----
 
 DROGON_TEST(ResidentCreation)
 {
@@ -22,7 +25,7 @@ DROGON_TEST(ResidentCreation)
 
 DROGON_TEST(ResidentInformationAccess)
 {
-   Resident resident(
+    Resident resident(
         2,
         "Maria",
         "Santos",
@@ -37,7 +40,7 @@ DROGON_TEST(ResidentInformationAccess)
     CHECK(resident.getLastName() == "Santos");
     CHECK(resident.getAddress() == "Binan, Laguna");
     CHECK(resident.getContactNumber() == "09987654321");
-    CHECK(resident.getEmail() == "maria@example.com");   
+    CHECK(resident.getEmail() == "maria@example.com");
 }
 
 DROGON_TEST(ResidentStatus)
@@ -55,7 +58,187 @@ DROGON_TEST(ResidentStatus)
     CHECK(resident.getStatus() == ResidentStatus::Active);
 }
 
-int main(int argc, char** argv) 
+// ---- T02 tests (Resident validation) ----
+
+DROGON_TEST(ValidResidentInformationPassesValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+
+    CHECK(validator.isValid(resident) == true);
+}
+
+DROGON_TEST(MissingFirstNameFailsValidation)
+{
+    Resident resident(
+        1,
+        "",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.firstNameValid == false);
+}
+
+DROGON_TEST(MissingLastNameFailsValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.lastNameValid == false);
+}
+
+DROGON_TEST(MissingAddressFailsValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.addressValid == false);
+}
+
+DROGON_TEST(WhitespaceOnlyRequiredInformationFailsValidation)
+{
+    Resident resident(
+        1,
+        "   ",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.firstNameValid == false);
+}
+
+DROGON_TEST(InvalidContactNumberFailsValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "0917ABC4567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.contactNumberValid == false);
+}
+
+DROGON_TEST(InvalidEmailFailsValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan.example.com",
+        ResidentStatus::Active
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.emailValid == false);
+}
+
+DROGON_TEST(SupportedResidentStatusesPassValidation)
+{
+    Resident activeResident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        ResidentStatus::Active
+    );
+
+    Resident inactiveResident(
+        2,
+        "Maria",
+        "Santos",
+        "Barangay Santo Tomas",
+        "09181234567",
+        "maria@example.com",
+        ResidentStatus::Inactive
+    );
+
+    ResidentValidator validator;
+
+    CHECK(validator.isValid(activeResident) == true);
+    CHECK(validator.isValid(inactiveResident) == true);
+}
+
+DROGON_TEST(UnsupportedResidentStatusFailsValidation)
+{
+    Resident resident(
+        1,
+        "Juan",
+        "Dela Cruz",
+        "Barangay Santo Tomas",
+        "09171234567",
+        "juan@example.com",
+        static_cast<ResidentStatus>(99)
+    );
+
+    ResidentValidator validator;
+    auto result = validator.validate(resident);
+
+    CHECK(validator.isValid(resident) == false);
+    CHECK(result.statusValid == false);
+}
+
+int main(int argc, char** argv)
 {
     using namespace drogon;
 
