@@ -4,21 +4,22 @@
 #include "../models/Resident.h"
 #include "../models/ResidentValidator.h"
 
-// ---- T01 tests (preserved, matching the committed Resident model) ----
+// ---- T01 tests (updated to match corrected Resident model) ----
 
 DROGON_TEST(ResidentCreation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "Laguna",
         "09123456789",
         "juan@example.com",
-        ResidentStatus::Active
+        "Active",
+        1
     );
 
-    CHECK(resident.getId() == 1);
+    CHECK(resident.getId().has_value());
+    CHECK(resident.getId().value() == 1);
     CHECK(resident.getFirstName() == "Juan");
     CHECK(resident.getLastName() == "Dela Cruz");
 }
@@ -26,16 +27,17 @@ DROGON_TEST(ResidentCreation)
 DROGON_TEST(ResidentInformationAccess)
 {
     Resident resident(
-        2,
         "Maria",
         "Santos",
         "Binan, Laguna",
         "09987654321",
         "maria@example.com",
-        ResidentStatus::Active
+        "Active",
+        2
     );
 
-    CHECK(resident.getId() == 2);
+    CHECK(resident.getId().has_value());
+    CHECK(resident.getId().value() == 2);
     CHECK(resident.getFirstName() == "Maria");
     CHECK(resident.getLastName() == "Santos");
     CHECK(resident.getAddress() == "Binan, Laguna");
@@ -46,16 +48,30 @@ DROGON_TEST(ResidentInformationAccess)
 DROGON_TEST(ResidentStatus)
 {
     Resident resident(
-        3,
         "Pedro",
         "Reyes",
         "Santa Rosa, Laguna",
         "09111222333",
         "pedro@example.com",
-        ResidentStatus::Active
+        "Active",
+        3
     );
 
-    CHECK(resident.getStatus() == ResidentStatus::Active);
+    CHECK(resident.getStatus() == "Active");
+}
+
+DROGON_TEST(ResidentDefaultsToActiveStatus)
+{
+    Resident resident(
+        "Ana",
+        "Cruz",
+        "Calamba, Laguna",
+        "09221234567",
+        "ana@example.com"
+    );
+
+    CHECK(resident.getStatus() == "Active");
+    CHECK(resident.getId().has_value() == false);
 }
 
 // ---- T02 tests (Resident validation) ----
@@ -63,13 +79,11 @@ DROGON_TEST(ResidentStatus)
 DROGON_TEST(ValidResidentInformationPassesValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -80,13 +94,11 @@ DROGON_TEST(ValidResidentInformationPassesValidation)
 DROGON_TEST(MissingFirstNameFailsValidation)
 {
     Resident resident(
-        1,
         "",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -99,13 +111,11 @@ DROGON_TEST(MissingFirstNameFailsValidation)
 DROGON_TEST(MissingLastNameFailsValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "",
         "Barangay Santo Tomas",
         "09171234567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -118,13 +128,11 @@ DROGON_TEST(MissingLastNameFailsValidation)
 DROGON_TEST(MissingAddressFailsValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "",
         "09171234567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -137,13 +145,11 @@ DROGON_TEST(MissingAddressFailsValidation)
 DROGON_TEST(WhitespaceOnlyRequiredInformationFailsValidation)
 {
     Resident resident(
-        1,
         "   ",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -156,13 +162,11 @@ DROGON_TEST(WhitespaceOnlyRequiredInformationFailsValidation)
 DROGON_TEST(InvalidContactNumberFailsValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "0917ABC4567",
-        "juan@example.com",
-        ResidentStatus::Active
+        "juan@example.com"
     );
 
     ResidentValidator validator;
@@ -175,13 +179,11 @@ DROGON_TEST(InvalidContactNumberFailsValidation)
 DROGON_TEST(InvalidEmailFailsValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
-        "juan.example.com",
-        ResidentStatus::Active
+        "juan.example.com"
     );
 
     ResidentValidator validator;
@@ -194,23 +196,21 @@ DROGON_TEST(InvalidEmailFailsValidation)
 DROGON_TEST(SupportedResidentStatusesPassValidation)
 {
     Resident activeResident(
-        1,
         "Juan",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
         "juan@example.com",
-        ResidentStatus::Active
+        "Active"
     );
 
     Resident inactiveResident(
-        2,
         "Maria",
         "Santos",
         "Barangay Santo Tomas",
         "09181234567",
         "maria@example.com",
-        ResidentStatus::Inactive
+        "Inactive"
     );
 
     ResidentValidator validator;
@@ -222,13 +222,12 @@ DROGON_TEST(SupportedResidentStatusesPassValidation)
 DROGON_TEST(UnsupportedResidentStatusFailsValidation)
 {
     Resident resident(
-        1,
         "Juan",
         "Dela Cruz",
         "Barangay Santo Tomas",
         "09171234567",
         "juan@example.com",
-        static_cast<ResidentStatus>(99)
+        "Unknown"
     );
 
     ResidentValidator validator;
@@ -245,18 +244,14 @@ int main(int argc, char** argv)
     std::promise<void> p1;
     std::future<void> f1 = p1.get_future();
 
-    // Start the main loop on another thread
     std::thread thr([&]() {
-        // Queues the promise to be fulfilled after starting the loop
         app().getLoop()->queueInLoop([&p1]() { p1.set_value(); });
         app().run();
     });
 
-    // The future is only satisfied after the event loop started
     f1.get();
     int status = test::run(argc, argv);
 
-    // Ask the event loop to shutdown and wait
     app().getLoop()->queueInLoop([]() { app().quit(); });
     thr.join();
     return status;

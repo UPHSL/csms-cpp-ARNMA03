@@ -122,9 +122,9 @@ bool ResidentValidator::isValidEmail(
 }
 
 bool ResidentValidator::isSupportedStatus(
-    ResidentStatus status
+    const std::string& status
 ) const
 {
-    return status == ResidentStatus::Active
-        || status == ResidentStatus::Inactive;
-};
+    return status == "Active"
+        || status == "Inactive";
+}

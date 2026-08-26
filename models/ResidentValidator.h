@@ -49,6 +49,6 @@ private:
     ) const;
 
     bool isSupportedStatus(
-        ResidentStatus status
+        const std::string& status
     ) const;
 };
