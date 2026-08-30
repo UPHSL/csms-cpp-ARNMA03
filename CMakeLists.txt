@@ -23,6 +23,8 @@ add_executable(${PROJECT_NAME}
     main.cc
     controllers/HomeController.cc
     controllers/HealthController.cc
+    database/Database.cc
+    repositories/ResidentRepository.cc
 )
 
 # ##############################################################################
@@ -33,7 +35,12 @@ add_executable(${PROJECT_NAME}
 #
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Drogon::Drogon
+    unofficial::sqlite3::sqlite3
+)
 
 # ##############################################################################
 
@@ -49,6 +56,8 @@ aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
 aux_source_directory(plugins PLUGIN_SRC)
 aux_source_directory(models MODEL_SRC)
+aux_source_directory(database DATABASE_SRC)
+aux_source_directory(repositories REPOSITORY_SRC)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
                     ${CMAKE_CURRENT_BINARY_DIR})
@@ -61,15 +70,20 @@ drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
 #                     ${CMAKE_CURRENT_BINARY_DIR} TRUE CHANGE_ME)
 
 target_include_directories(${PROJECT_NAME}
-                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/models)
+                           PRIVATE
+                           ${CMAKE_CURRENT_SOURCE_DIR}
+                           ${CMAKE_CURRENT_SOURCE_DIR}/models
+                           ${CMAKE_CURRENT_SOURCE_DIR}/database
+                           ${CMAKE_CURRENT_SOURCE_DIR}/repositories)
 target_sources(${PROJECT_NAME}
                PRIVATE
                ${SRC_DIR}
                ${CTL_SRC}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
-               ${MODEL_SRC})
+               ${MODEL_SRC}
+               ${DATABASE_SRC}
+               ${REPOSITORY_SRC})
 # ##############################################################################
 # uncomment the following line for dynamically loading views 
 # set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)

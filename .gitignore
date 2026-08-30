@@ -39,3 +39,8 @@ logs/
 .DS_Store
 Thumbs.db
 .vs/
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
