@@ -7,6 +7,7 @@ add_executable(${PROJECT_NAME}
     ../models/ResidentValidator.cc
     ../database/Database.cc
     ../repositories/ResidentRepository.cc
+    ../services/ResidentRegistrationService.cc
 )
 
 # ##############################################################################
