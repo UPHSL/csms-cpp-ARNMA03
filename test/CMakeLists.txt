@@ -3,6 +3,10 @@ project(csms_cpp_test CXX)
 
 add_executable(${PROJECT_NAME} 
     test_main.cc
+    ResidentTests.cc
+    ResidentValidatorTests.cc
+    ResidentRepositoryTests.cc
+    ResidentRegistrationServiceTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
