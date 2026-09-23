@@ -3,6 +3,27 @@
 #include <stdexcept>
 #include <string>
 
+namespace
+{
+    std::string escapeLikeWildcards(const std::string& value)
+    {
+        std::string escaped;
+        escaped.reserve(value.size());
+
+        for (char character : value)
+        {
+            if (character == '\\' || character == '%' || character == '_')
+            {
+                escaped.push_back('\\');
+            }
+
+            escaped.push_back(character);
+        }
+
+        return escaped;
+    }
+}
+
 ResidentRepository::ResidentRepository(Database& database)
     : database_(database)
 {
@@ -199,35 +220,7 @@ std::optional<Resident> ResidentRepository::findById(int residentId)
 
     if (result == SQLITE_ROW)
     {
-        const int id = sqlite3_column_int(statement, 0);
-
-        const char* firstName =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 1));
-
-        const char* lastName =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 2));
-
-        const char* address =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 3));
-
-        const char* contactNumber =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 4));
-
-        const char* email =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 5));
-
-        const char* status =
-            reinterpret_cast<const char*>(sqlite3_column_text(statement, 6));
-
-        Resident resident(
-            firstName ? firstName : "",
-            lastName ? lastName : "",
-            address ? address : "",
-            contactNumber ? contactNumber : "",
-            email ? email : "",
-            status ? status : "",
-            id
-        );
+        Resident resident = mapRowToResident(statement);
 
         sqlite3_finalize(statement);
 
@@ -248,4 +241,194 @@ std::optional<Resident> ResidentRepository::findById(int residentId)
     throw std::runtime_error(
         "Failed to retrieve resident: " + errorMessage
     );
+}
+
+Resident ResidentRepository::mapRowToResident(sqlite3_stmt* statement) const
+{
+    const int id = sqlite3_column_int(statement, 0);
+
+    const char* firstName =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 1));
+
+    const char* lastName =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 2));
+
+    const char* address =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 3));
+
+    const char* contactNumber =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 4));
+
+    const char* email =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 5));
+
+    const char* status =
+        reinterpret_cast<const char*>(sqlite3_column_text(statement, 6));
+
+    return Resident(
+        firstName ? firstName : "",
+        lastName ? lastName : "",
+        address ? address : "",
+        contactNumber ? contactNumber : "",
+        email ? email : "",
+        status ? status : "",
+        id
+    );
+}
+
+std::vector<Resident> ResidentRepository::findAll()
+{
+    const char* sql = R"(
+        SELECT
+            id,
+            first_name,
+            last_name,
+            address,
+            contact_number,
+            email,
+            status
+        FROM residents
+        ORDER BY
+            last_name COLLATE NOCASE ASC,
+            first_name COLLATE NOCASE ASC,
+            id ASC;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare resident listing statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    std::vector<Resident> residents;
+
+    result = sqlite3_step(statement);
+
+    while (result == SQLITE_ROW)
+    {
+        residents.push_back(mapRowToResident(statement));
+        result = sqlite3_step(statement);
+    }
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to list residents: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return residents;
+}
+
+std::vector<Resident> ResidentRepository::searchByName(
+    const std::string& searchTerm
+)
+{
+    const char* sql = R"(
+        SELECT
+            id,
+            first_name,
+            last_name,
+            address,
+            contact_number,
+            email,
+            status
+        FROM residents
+        WHERE first_name LIKE ? ESCAPE '\'
+           OR last_name LIKE ? ESCAPE '\'
+        ORDER BY
+            last_name COLLATE NOCASE ASC,
+            first_name COLLATE NOCASE ASC,
+            id ASC;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare resident search statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    const std::string pattern = "%" + escapeLikeWildcards(searchTerm) + "%";
+
+    result = sqlite3_bind_text(
+        statement,
+        1,
+        pattern.c_str(),
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+    if (result == SQLITE_OK)
+    {
+        result = sqlite3_bind_text(
+            statement,
+            2,
+            pattern.c_str(),
+            -1,
+            SQLITE_TRANSIENT
+        );
+    }
+
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind search term.");
+    }
+
+    std::vector<Resident> residents;
+
+    result = sqlite3_step(statement);
+
+    while (result == SQLITE_ROW)
+    {
+        residents.push_back(mapRowToResident(statement));
+        result = sqlite3_step(statement);
+    }
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to search residents: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return residents;
 }
