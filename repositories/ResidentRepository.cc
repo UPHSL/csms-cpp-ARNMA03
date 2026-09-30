@@ -505,3 +505,56 @@ bool ResidentRepository::update(const Resident& resident)
  
     return sqlite3_changes(database_.getConnection()) > 0;
 }
+
+bool ResidentRepository::deactivateById(int residentId)
+{
+    const char* sql = R"(
+        UPDATE residents
+        SET status = 'Inactive'
+        WHERE id = ?;
+    )";
+ 
+    sqlite3_stmt* statement = nullptr;
+ 
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+ 
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare deactivation statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+ 
+    result = sqlite3_bind_int(statement, 1, residentId);
+ 
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind resident ID.");
+    }
+ 
+    result = sqlite3_step(statement);
+ 
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+ 
+        sqlite3_finalize(statement);
+ 
+        throw std::runtime_error(
+            "Failed to deactivate resident: " + errorMessage
+        );
+    }
+ 
+    sqlite3_finalize(statement);
+ 
+    return sqlite3_changes(database_.getConnection()) > 0;
+}
