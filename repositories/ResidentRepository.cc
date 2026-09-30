@@ -432,3 +432,76 @@ std::vector<Resident> ResidentRepository::searchByName(
 
     return residents;
 }
+
+bool ResidentRepository::update(const Resident& resident)
+{
+    if (!resident.getId().has_value())
+    {
+        return false;
+    }
+ 
+    const char* sql = R"(
+        UPDATE residents
+        SET first_name = ?,
+            last_name = ?,
+            address = ?,
+            contact_number = ?,
+            email = ?
+        WHERE id = ?;
+    )";
+ 
+    sqlite3_stmt* statement = nullptr;
+ 
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+ 
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare UPDATE statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+ 
+    result = sqlite3_bind_text(statement, 1, resident.getFirstName().c_str(), -1, SQLITE_TRANSIENT);
+ 
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 2, resident.getLastName().c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 3, resident.getAddress().c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 4, resident.getContactNumber().c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 5, resident.getEmail().c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_int(statement, 6, resident.getId().value());
+ 
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind UPDATE parameters.");
+    }
+ 
+    result = sqlite3_step(statement);
+ 
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+ 
+        sqlite3_finalize(statement);
+ 
+        throw std::runtime_error(
+            "Failed to update resident: " + errorMessage
+        );
+    }
+ 
+    sqlite3_finalize(statement);
+ 
+    return sqlite3_changes(database_.getConnection()) > 0;
+}
