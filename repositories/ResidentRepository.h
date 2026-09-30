@@ -18,6 +18,8 @@ public:
     std::vector<Resident> findAll();  
 
     std::vector<Resident> searchByName(const std::string& searchTerm);
+
+    bool update(const Resident& resident);
     
 private:
     Database& database_;

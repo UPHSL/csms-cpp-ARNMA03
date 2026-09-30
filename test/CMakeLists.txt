@@ -8,12 +8,14 @@ add_executable(${PROJECT_NAME}
     ResidentRepositoryTests.cc
     ResidentRegistrationServiceTests.cc
     ResidentQueryServiceTests.cc
+    ResidentUpdateServiceTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
     ../repositories/ResidentRepository.cc
     ../services/ResidentRegistrationService.cc
     ../services/ResidentQueryService.cc
+    ../services/ResidentUpdateService.cc
 )
 
 # ##############################################################################
