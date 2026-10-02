@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME}
     ResidentRegistrationServiceTests.cc
     ResidentQueryServiceTests.cc
     ResidentUpdateServiceTests.cc
+    ResidentDeactivationServiceTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
@@ -16,6 +17,7 @@ add_executable(${PROJECT_NAME}
     ../services/ResidentRegistrationService.cc
     ../services/ResidentQueryService.cc
     ../services/ResidentUpdateService.cc
+    ../services/ResidentDeactivationService.cc
 )
 
 # ##############################################################################

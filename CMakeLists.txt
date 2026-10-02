@@ -28,6 +28,7 @@ add_executable(${PROJECT_NAME}
     services/ResidentRegistrationService.cc
     services/ResidentQueryService.cc
     services/ResidentUpdateService.cc
+    services/ResidentDeactivationService.cc 
 )
 
 # ##############################################################################

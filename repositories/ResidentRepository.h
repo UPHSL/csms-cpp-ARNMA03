@@ -20,6 +20,8 @@ public:
     std::vector<Resident> searchByName(const std::string& searchTerm);
 
     bool update(const Resident& resident);
+
+    bool deactivateById(int residentId);
     
 private:
     Database& database_;
