@@ -17,6 +17,8 @@ public:
 
     std::optional<ServiceRequest> findById(int serviceRequestId);
 
+    bool updateStatus(int serviceRequestId, const std::string& status);
+
 private:
     Database& database_;
 

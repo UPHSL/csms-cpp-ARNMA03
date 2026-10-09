@@ -173,3 +173,62 @@ ServiceRequest ServiceRequestRepository::mapRowToServiceRequest(sqlite3_stmt* st
         id
     );
 }
+
+bool ServiceRequestRepository::updateStatus(
+    int serviceRequestId,
+    const std::string& status
+)
+{
+    const char* sql = R"(
+        UPDATE service_requests
+        SET status = ?
+        WHERE id = ?;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare Service Request status UPDATE statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    result = sqlite3_bind_text(statement, 1, status.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_int(statement, 2, serviceRequestId);
+
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind Service Request status UPDATE parameters.");
+    }
+
+    result = sqlite3_step(statement);
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to update Service Request status: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return sqlite3_changes(database_.getConnection()) > 0;
+}

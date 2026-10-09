@@ -31,6 +31,7 @@ add_executable(${PROJECT_NAME}
     services/ResidentDeactivationService.cc 
     repositories/ServiceRequestRepository.cc
     services/ServiceRequestSubmissionService.cc
+    services/ServiceRequestStatusService.cc
 )
 
 # ##############################################################################
