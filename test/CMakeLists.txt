@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
     ServiceRequestTests.cc
     ServiceRequestSubmissionServiceTests.cc
     ServiceRequestStatusServiceTests.cc
+    ServiceRequestQueryServiceTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
@@ -26,6 +27,7 @@ add_executable(${PROJECT_NAME}
     ../repositories/ServiceRequestRepository.cc
     ../services/ServiceRequestSubmissionService.cc
     ../services/ServiceRequestStatusService.cc
+    ../services/ServiceRequestQueryService.cc
 )
 
 # ##############################################################################
