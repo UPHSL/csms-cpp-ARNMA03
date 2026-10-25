@@ -4,6 +4,8 @@
 #include "../models/ServiceRequest.h"
 
 #include <optional>
+#include <string>
+#include <vector>
 
 // Service Request database access only. Does not decide whether the
 // Resident exists, is Active, or whether the request's fields are valid --
@@ -16,6 +18,13 @@ public:
     ServiceRequest save(const ServiceRequest& serviceRequest);
 
     std::optional<ServiceRequest> findById(int serviceRequestId);
+
+    std::vector<ServiceRequest> findAll();
+
+    std::vector<ServiceRequest> search(
+        const std::string& searchTerm,
+        const std::string& status
+    );
 
     bool updateStatus(int serviceRequestId, const std::string& status);
 

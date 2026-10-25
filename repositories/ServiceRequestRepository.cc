@@ -3,6 +3,27 @@
 #include <stdexcept>
 #include <string>
 
+namespace
+{
+    std::string escapeLikeWildcards(const std::string& value)
+    {
+        std::string escaped;
+        escaped.reserve(value.size());
+
+        for (char character : value)
+        {
+            if (character == '\\' || character == '%' || character == '_')
+            {
+                escaped.push_back('\\');
+            }
+
+            escaped.push_back(character);
+        }
+
+        return escaped;
+    }
+}
+
 ServiceRequestRepository::ServiceRequestRepository(Database& database)
     : database_(database)
 {
@@ -172,6 +193,153 @@ ServiceRequest ServiceRequestRepository::mapRowToServiceRequest(sqlite3_stmt* st
         status ? status : "",
         id
     );
+}
+
+// ---- T11: listing and searching ----
+
+std::vector<ServiceRequest> ServiceRequestRepository::findAll()
+{
+    const char* sql = R"(
+        SELECT
+            id,
+            resident_id,
+            service_type,
+            description,
+            date_requested,
+            status
+        FROM service_requests
+        ORDER BY
+            date_requested DESC,
+            id DESC;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare Service Request listing statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    std::vector<ServiceRequest> serviceRequests;
+
+    result = sqlite3_step(statement);
+
+    while (result == SQLITE_ROW)
+    {
+        serviceRequests.push_back(mapRowToServiceRequest(statement));
+        result = sqlite3_step(statement);
+    }
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to list Service Requests: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return serviceRequests;
+}
+
+std::vector<ServiceRequest> ServiceRequestRepository::search(
+    const std::string& searchTerm,
+    const std::string& status
+)
+{
+    const char* sql = R"(
+        SELECT
+            id,
+            resident_id,
+            service_type,
+            description,
+            date_requested,
+            status
+        FROM service_requests
+        WHERE (service_type LIKE ? ESCAPE '\'
+               OR description LIKE ? ESCAPE '\')
+          AND (? = '' OR status = ?)
+        ORDER BY
+            date_requested DESC,
+            id DESC;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare Service Request search statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    const std::string pattern = "%" + escapeLikeWildcards(searchTerm) + "%";
+
+    result = sqlite3_bind_text(statement, 1, pattern.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 2, pattern.c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 3, status.c_str(), -1, SQLITE_TRANSIENT);
+    if (result == SQLITE_OK)
+        result = sqlite3_bind_text(statement, 4, status.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind Service Request search parameters.");
+    }
+
+    std::vector<ServiceRequest> serviceRequests;
+
+    result = sqlite3_step(statement);
+
+    while (result == SQLITE_ROW)
+    {
+        serviceRequests.push_back(mapRowToServiceRequest(statement));
+        result = sqlite3_step(statement);
+    }
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to search Service Requests: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return serviceRequests;
 }
 
 bool ServiceRequestRepository::updateStatus(
