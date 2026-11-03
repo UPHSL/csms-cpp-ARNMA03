@@ -1,13 +1,13 @@
 #include <drogon/drogon.h>
-#include "database/Database.h"
+#include "app/AppContext.h"
 #include <filesystem>
+#include <memory>
 
 int main()
 {
     std::filesystem::create_directories("data");
 
-    Database database("data/csms.db");
-    database.initialize();
+    AppContext::install(std::make_shared<AppContext>("data/csms.db"));
 
     drogon::app()
         .setLogLevel(trantor::Logger::kWarn)
@@ -15,5 +15,6 @@ int main()
         .setThreadNum(1)
         .run();
 
+    AppContext::clear();
     return 0;
 }

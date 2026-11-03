@@ -21,6 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(${PROJECT_NAME}
     main.cc
+    app/AppContext.cc
     controllers/HomeController.cc
     controllers/HealthController.cc
     database/Database.cc

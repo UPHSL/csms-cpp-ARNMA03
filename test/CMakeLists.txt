@@ -14,6 +14,8 @@ add_executable(${PROJECT_NAME}
     ServiceRequestSubmissionServiceTests.cc
     ServiceRequestStatusServiceTests.cc
     ServiceRequestQueryServiceTests.cc
+    ResidentUiTests.cc
+    HttpTestSupport.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
@@ -28,7 +30,12 @@ add_executable(${PROJECT_NAME}
     ../services/ServiceRequestSubmissionService.cc
     ../services/ServiceRequestStatusService.cc
     ../services/ServiceRequestQueryService.cc
+    ../app/AppContext.cc
+    ../controllers/ResidentController.cc
 )
+
+# Repo root, so generated views can include "models/Resident.h" like the app does.
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 # ##############################################################################
 # If you include the drogon source code locally in your project, use this method
@@ -41,5 +48,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     unofficial::sqlite3::sqlite3
 )
 
-ParseAndAddDrogonTests(${PROJECT_NAME})
+# The controller renders .csp views, so the test executable needs its own copy
+# of the generated view code.
+drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../views
+                    ${CMAKE_CURRENT_BINARY_DIR})
 
+ParseAndAddDrogonTests(${PROJECT_NAME})
