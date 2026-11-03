@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 class ResidentQueryService
 {
@@ -14,6 +15,8 @@ public:
     std::vector<Resident> listResidents();
 
     std::vector<Resident> searchResidents(const std::string& searchTerm);
+
+    std::optional<Resident> findResident(int residentId);
 
 private:
     ResidentRepository& repository_;

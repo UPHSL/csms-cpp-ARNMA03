@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[[ title ]] - CSMS</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; color: #222; }
+  nav { background: #1f3a5f; padding: 12px 24px; }
+  nav strong { color: #fff; margin-right: 24px; }
+  nav a { color: #dbe7ff; margin-right: 16px; text-decoration: none; }
+  main { padding: 24px; max-width: 1000px; margin: 0 auto; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  th { background: #f0f3f8; }
+  .error { color: #b00020; }
+  .success { color: #1b6e2d; }
+</style>
+</head>
+<body>
+<nav>
+  <strong>CSMS</strong>
+  <a href="/residents">Residents</a>
+</nav>
+<main>
+<h1>[[ title ]]</h1>

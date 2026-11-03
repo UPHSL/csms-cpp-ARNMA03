@@ -2,9 +2,15 @@
 #include <drogon/drogon_test.h>
 #include <drogon/drogon.h>
 
+#include "HttpTestSupport.h"
+
 int main(int argc, char** argv)
 {
     using namespace drogon;
+
+    app().setLogLevel(trantor::Logger::kWarn)
+        .setThreadNum(1)
+        .addListener("127.0.0.1", kTestPort);
 
     std::promise<void> p1;
     std::future<void> f1 = p1.get_future();

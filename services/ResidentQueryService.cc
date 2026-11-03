@@ -45,3 +45,8 @@ std::string ResidentQueryService::trim(const std::string& value)
 
     return std::string(start, end);
 }
+
+std::optional<Resident> ResidentQueryService::findResident(int residentId)
+{
+    return repository_.findById(residentId);
+}
