@@ -1,0 +1,44 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+%>
+<%c++
+auto idText = @@.get<std::string>("idText");
+auto residentIdText = @@.get<std::string>("residentIdText");
+auto serviceType = @@.get<std::string>("serviceType");
+auto description = @@.get<std::string>("description");
+auto dateRequested = @@.get<std::string>("dateRequested");
+auto status = @@.get<std::string>("status");
+auto errorMessage = @@.get<std::string>("errorMessage");
+%>
+<%view LayoutHeader %>
+<%c++ if (!errorMessage.empty()) { %>
+<p class="error">{% drogon::HttpViewData::htmlTranslate(errorMessage) %}</p>
+<%c++ } %>
+<table>
+  <tr><th>ID</th><td>{% drogon::HttpViewData::htmlTranslate(idText) %}</td></tr>
+  <tr><th>Resident ID</th><td>{% drogon::HttpViewData::htmlTranslate(residentIdText) %}</td></tr>
+  <tr><th>Service Type</th><td>{% drogon::HttpViewData::htmlTranslate(serviceType) %}</td></tr>
+  <tr><th>Description</th><td style="white-space: pre-wrap">{% drogon::HttpViewData::htmlTranslate(description) %}</td></tr>
+  <tr><th>Date Requested</th><td>{% drogon::HttpViewData::htmlTranslate(dateRequested) %}</td></tr>
+  <tr><th>Status</th><td>{% drogon::HttpViewData::htmlTranslate(status) %}</td></tr>
+</table>
+<%c++ if (status == "Pending") { %>
+<form method="post" action="/service-requests/{% drogon::HttpViewData::htmlTranslate(idText) %}/start" style="display:inline">
+  <button type="submit">Start Processing</button>
+</form>
+<form method="post" action="/service-requests/{% drogon::HttpViewData::htmlTranslate(idText) %}/cancel" style="display:inline">
+  <button type="submit">Cancel</button>
+</form>
+<%c++ } else if (status == "In Progress") { %>
+<form method="post" action="/service-requests/{% drogon::HttpViewData::htmlTranslate(idText) %}/complete" style="display:inline">
+  <button type="submit">Complete</button>
+</form>
+<form method="post" action="/service-requests/{% drogon::HttpViewData::htmlTranslate(idText) %}/cancel" style="display:inline">
+  <button type="submit">Cancel</button>
+</form>
+<%c++ } else { %>
+<p>This Service Request is {% drogon::HttpViewData::htmlTranslate(status) %} and cannot be processed further.</p>
+<%c++ } %>
+<p><a href="/service-requests">Back to Service Requests</a></p>
+<%view LayoutFooter %>
