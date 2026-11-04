@@ -21,6 +21,7 @@
 <nav>
   <strong>CSMS</strong>
   <a href="/residents">Residents</a>
+  <a href="/service-requests">Service Requests</a>
 </nav>
 <main>
 <h1>[[ title ]]</h1>

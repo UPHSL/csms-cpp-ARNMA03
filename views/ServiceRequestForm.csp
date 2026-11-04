@@ -1,0 +1,53 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+%>
+<%c++
+auto residentIdText = @@.get<std::string>("residentIdText");
+auto serviceType = @@.get<std::string>("serviceType");
+auto description = @@.get<std::string>("description");
+auto dateRequested = @@.get<std::string>("dateRequested");
+auto formError = @@.get<std::string>("formError");
+auto residentIdError = @@.get<std::string>("residentIdError");
+auto serviceTypeError = @@.get<std::string>("serviceTypeError");
+auto descriptionError = @@.get<std::string>("descriptionError");
+auto dateRequestedError = @@.get<std::string>("dateRequestedError");
+%>
+<%view LayoutHeader %>
+<%c++ if (!formError.empty()) { %>
+<p class="error">{% drogon::HttpViewData::htmlTranslate(formError) %}</p>
+<%c++ } %>
+<p><a href="/residents">View Residents</a> (to look up a Resident ID)</p>
+<form method="post" action="/service-requests">
+  <p>
+    <label for="residentId">Resident ID</label><br>
+    <input type="text" id="residentId" name="residentId" value="{% drogon::HttpViewData::htmlTranslate(residentIdText) %}">
+<%c++ if (!residentIdError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(residentIdError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="serviceType">Service Type</label><br>
+    <input type="text" id="serviceType" name="serviceType" value="{% drogon::HttpViewData::htmlTranslate(serviceType) %}">
+<%c++ if (!serviceTypeError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(serviceTypeError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="description">Description</label><br>
+    <textarea id="description" name="description" rows="4" cols="50">{% drogon::HttpViewData::htmlTranslate(description) %}</textarea>
+<%c++ if (!descriptionError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(descriptionError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="dateRequested">Date Requested</label><br>
+    <input type="date" id="dateRequested" name="dateRequested" value="{% drogon::HttpViewData::htmlTranslate(dateRequested) %}">
+<%c++ if (!dateRequestedError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(dateRequestedError) %}</span>
+<%c++ } %>
+  </p>
+  <button type="submit">Submit Service Request</button>
+  <a href="/service-requests">Back to Service Requests</a>
+</form>
+<%view LayoutFooter %>
