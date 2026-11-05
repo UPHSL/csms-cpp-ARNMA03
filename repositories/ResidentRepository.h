@@ -22,6 +22,10 @@ public:
     bool update(const Resident& resident);
 
     bool deactivateById(int residentId);
+
+    int countAll();
+    
+    int countByStatus(const std::string& status);
     
 private:
     Database& database_;
