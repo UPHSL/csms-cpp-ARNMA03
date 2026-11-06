@@ -1,0 +1,58 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+#include <vector>
+#include "models/Resident.h"
+%>
+<%c++
+auto residents = @@.get<std::vector<Resident>>("residents");
+auto query = @@.get<std::string>("query");
+auto successMessage = @@.get<std::string>("successMessage");
+%>
+<%view LayoutHeader %>
+<%c++ if (!successMessage.empty()) { %>
+<p class="success">{% drogon::HttpViewData::htmlTranslate(successMessage) %}</p>
+<%c++ } %>
+<p><a href="/residents/new">Register Resident</a></p>
+<form method="get" action="/residents">
+  <label for="q">Search by name</label>
+  <input type="text" id="q" name="q" value="{% drogon::HttpViewData::htmlTranslate(query) %}">
+  <button type="submit">Search</button>
+</form>
+<%c++ if (residents.empty()) { %>
+<p>No Residents found.</p>
+<%c++ } else { %>
+<table>
+  <thead>
+    <tr>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Address</th>
+      <th>Contact Number</th>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+<%c++ for (const auto& resident : residents) { %>
+    <tr>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getFirstName()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getLastName()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getAddress()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getContactNumber()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getEmail()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(resident.getStatus()) %}</td>
+      <td><a href="/residents/{% std::to_string(resident.getId().value_or(0)) %}/edit">Edit</a>
+        <%c++ if (resident.getStatus() == "Active") { %>
+                <form method="post" action="/residents/{% std::to_string(resident.getId().value_or(0)) %}/deactivate" style="display:inline">
+                <button type="submit">Deactivate</button>
+                </form>
+        <%c++ } %>
+      </td>
+    </tr>
+<%c++ } %>
+  </tbody>
+</table>
+<%c++ } %>
+<%view LayoutFooter %>

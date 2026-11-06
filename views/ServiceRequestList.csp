@@ -1,0 +1,82 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+#include <vector>
+#include "models/ServiceRequest.h"
+%>
+<%c++
+auto serviceRequests = @@.get<std::vector<ServiceRequest>>("serviceRequests");
+auto query = @@.get<std::string>("query");
+auto selectedStatus = @@.get<std::string>("selectedStatus");
+auto successMessage = @@.get<std::string>("successMessage");
+auto errorMessage = @@.get<std::string>("errorMessage");
+const std::vector<std::string> statuses = {"Pending", "In Progress", "Completed", "Cancelled"};
+%>
+<%view LayoutHeader %>
+<%c++ if (!successMessage.empty()) { %>
+<p class="success">{% drogon::HttpViewData::htmlTranslate(successMessage) %}</p>
+<%c++ } %>
+<%c++ if (!errorMessage.empty()) { %>
+<p class="error">{% drogon::HttpViewData::htmlTranslate(errorMessage) %}</p>
+<%c++ } %>
+<p><a href="/service-requests/new">Submit Service Request</a></p>
+<form method="get" action="/service-requests">
+  <label for="q">Search by service type or description</label>
+  <input type="text" id="q" name="q" value="{% drogon::HttpViewData::htmlTranslate(query) %}">
+  <label for="status">Status</label>
+  <select id="status" name="status">
+    <option value="">All Statuses</option>
+<%c++ for (const auto& s : statuses) { %>
+    <option value="{% drogon::HttpViewData::htmlTranslate(s) %}"<%c++ if (s == selectedStatus) { %> selected<%c++ } %>>{% drogon::HttpViewData::htmlTranslate(s) %}</option>
+<%c++ } %>
+  </select>
+  <button type="submit">Search</button>
+</form>
+<%c++ if (errorMessage.empty()) { %>
+<%c++ if (serviceRequests.empty()) { %>
+<p>No Service Requests found.</p>
+<%c++ } else { %>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Resident ID</th>
+      <th>Service Type</th>
+      <th>Date Requested</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+<%c++ for (const auto& sr : serviceRequests) { %>
+    <tr>
+      <td>{% std::to_string(sr.getId().value_or(0)) %}</td>
+      <td>{% std::to_string(sr.getResidentId()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getServiceType()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getDateRequested()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getStatus()) %}</td>
+      <td>
+        <a href="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}">View</a>
+<%c++ if (sr.getStatus() == "Pending") { %>
+        <form method="post" action="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}/start" style="display:inline">
+          <button type="submit">Start Processing</button>
+        </form>
+        <form method="post" action="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}/cancel" style="display:inline">
+          <button type="submit">Cancel</button>
+        </form>
+<%c++ } else if (sr.getStatus() == "In Progress") { %>
+        <form method="post" action="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}/complete" style="display:inline">
+          <button type="submit">Complete</button>
+        </form>
+        <form method="post" action="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}/cancel" style="display:inline">
+          <button type="submit">Cancel</button>
+        </form>
+<%c++ } %>
+      </td>
+    </tr>
+<%c++ } %>
+  </tbody>
+</table>
+<%c++ } %>
+<%c++ } %>
+<%view LayoutFooter %>

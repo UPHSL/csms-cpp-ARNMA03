@@ -1,0 +1,64 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+%>
+<%c++
+auto formAction = @@.get<std::string>("formAction");
+auto submitLabel = @@.get<std::string>("submitLabel");
+auto firstName = @@.get<std::string>("firstName");
+auto lastName = @@.get<std::string>("lastName");
+auto address = @@.get<std::string>("address");
+auto contactNumber = @@.get<std::string>("contactNumber");
+auto email = @@.get<std::string>("email");
+auto firstNameError = @@.get<std::string>("firstNameError");
+auto lastNameError = @@.get<std::string>("lastNameError");
+auto addressError = @@.get<std::string>("addressError");
+auto contactNumberError = @@.get<std::string>("contactNumberError");
+auto emailError = @@.get<std::string>("emailError");
+auto residentIdText = @@.get<std::string>("residentIdText");
+auto statusText = @@.get<std::string>("statusText");
+%>
+<%view LayoutHeader %>
+<%c++ if (!statusText.empty()) { %>
+<p>Resident ID: {% drogon::HttpViewData::htmlTranslate(residentIdText) %} &nbsp;|&nbsp; Status: {% drogon::HttpViewData::htmlTranslate(statusText) %}</p>
+<%c++ } %>
+<form method="post" action="{% drogon::HttpViewData::htmlTranslate(formAction) %}">
+  <p>
+    <label for="firstName">First Name</label><br>
+    <input type="text" id="firstName" name="firstName" value="{% drogon::HttpViewData::htmlTranslate(firstName) %}">
+<%c++ if (!firstNameError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(firstNameError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="lastName">Last Name</label><br>
+    <input type="text" id="lastName" name="lastName" value="{% drogon::HttpViewData::htmlTranslate(lastName) %}">
+<%c++ if (!lastNameError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(lastNameError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="address">Address</label><br>
+    <input type="text" id="address" name="address" value="{% drogon::HttpViewData::htmlTranslate(address) %}">
+<%c++ if (!addressError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(addressError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="contactNumber">Contact Number</label><br>
+    <input type="text" id="contactNumber" name="contactNumber" value="{% drogon::HttpViewData::htmlTranslate(contactNumber) %}">
+<%c++ if (!contactNumberError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(contactNumberError) %}</span>
+<%c++ } %>
+  </p>
+  <p>
+    <label for="email">Email</label><br>
+    <input type="text" id="email" name="email" value="{% drogon::HttpViewData::htmlTranslate(email) %}">
+<%c++ if (!emailError.empty()) { %>
+    <span class="error">{% drogon::HttpViewData::htmlTranslate(emailError) %}</span>
+<%c++ } %>
+  </p>
+  <button type="submit">{% drogon::HttpViewData::htmlTranslate(submitLabel) %}</button>
+  <a href="/residents">Cancel</a>
+</form>
+<%view LayoutFooter %>
