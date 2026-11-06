@@ -28,6 +28,12 @@ public:
 
     bool updateStatus(int serviceRequestId, const std::string& status);
 
+    int countAll();
+
+    int countByStatus(const std::string& status);
+
+    std::vector<ServiceRequest> findRecent(int limit);
+
 private:
     Database& database_;
 

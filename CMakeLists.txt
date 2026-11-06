@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     services/ServiceRequestSubmissionService.cc
     services/ServiceRequestStatusService.cc
     services/ServiceRequestQueryService.cc
+    services/DashboardService.cc
 )
 
 # ##############################################################################

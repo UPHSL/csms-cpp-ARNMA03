@@ -22,7 +22,8 @@ AppContext::AppContext(const std::string& databasePath)
           serviceRequestRepository_,
           residentRepository_),
       serviceRequestStatus_(serviceRequestRepository_),
-      serviceRequestQuery_(serviceRequestRepository_)
+      serviceRequestQuery_(serviceRequestRepository_),
+      dashboard_(residentRepository_, serviceRequestRepository_)
 {
     database_.initialize();
 }
@@ -31,10 +32,10 @@ ResidentRegistrationService& AppContext::residentRegistration() { return residen
 ResidentQueryService& AppContext::residentQuery() { return residentQuery_; }
 ResidentUpdateService& AppContext::residentUpdate() { return residentUpdate_; }
 ResidentDeactivationService& AppContext::residentDeactivation() { return residentDeactivation_; }
-
 ServiceRequestSubmissionService& AppContext::serviceRequestSubmission() { return serviceRequestSubmission_; }
 ServiceRequestStatusService& AppContext::serviceRequestStatus() { return serviceRequestStatus_; }
 ServiceRequestQueryService& AppContext::serviceRequestQuery() { return serviceRequestQuery_; }
+DashboardService& AppContext::dashboard() { return dashboard_; }
 
 void AppContext::install(std::shared_ptr<AppContext> context)
 {

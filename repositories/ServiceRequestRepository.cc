@@ -22,6 +22,39 @@ namespace
 
         return escaped;
     }
+
+    // Runs "SELECT COUNT(*) ..." and returns the single integer.
+    // If status is non-null it is bound to parameter 1.
+    int queryCount(sqlite3* connection, const char* sql, const std::string* status)
+    {
+        sqlite3_stmt* statement = nullptr;
+        int result = sqlite3_prepare_v2(connection, sql, -1, &statement, nullptr);
+        if (result != SQLITE_OK)
+        {
+            throw std::runtime_error(
+                "Failed to prepare COUNT statement: " +
+                std::string(sqlite3_errmsg(connection)));
+        }
+        if (status != nullptr)
+        {
+            result = sqlite3_bind_text(statement, 1, status->c_str(), -1, SQLITE_TRANSIENT);
+            if (result != SQLITE_OK)
+            {
+                sqlite3_finalize(statement);
+                throw std::runtime_error("Failed to bind COUNT status.");
+            }
+        }
+        result = sqlite3_step(statement);
+        if (result != SQLITE_ROW)
+        {
+            std::string errorMessage = sqlite3_errmsg(connection);
+            sqlite3_finalize(statement);
+            throw std::runtime_error("Failed to run COUNT statement: " + errorMessage);
+        }
+        const int count = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+        return count;
+    }
 }
 
 ServiceRequestRepository::ServiceRequestRepository(Database& database)
@@ -399,4 +432,98 @@ bool ServiceRequestRepository::updateStatus(
     sqlite3_finalize(statement);
 
     return sqlite3_changes(database_.getConnection()) > 0;
+}
+
+// ---- T14: dashboard aggregates ----
+
+int ServiceRequestRepository::countAll()
+{
+    return queryCount(
+        database_.getConnection(),
+        "SELECT COUNT(*) FROM service_requests;",
+        nullptr);
+}
+
+int ServiceRequestRepository::countByStatus(const std::string& status)
+{
+    return queryCount(
+        database_.getConnection(),
+        "SELECT COUNT(*) FROM service_requests WHERE status = ?;",
+        &status);
+}
+
+std::vector<ServiceRequest> ServiceRequestRepository::findRecent(int limit)
+{
+    std::vector<ServiceRequest> serviceRequests;
+
+    // SQLite treats a negative LIMIT as "no limit", so guard it here.
+    if (limit <= 0)
+    {
+        return serviceRequests;
+    }
+
+    const char* sql = R"(
+        SELECT
+            id,
+            resident_id,
+            service_type,
+            description,
+            date_requested,
+            status
+        FROM service_requests
+        ORDER BY
+            date_requested DESC,
+            id DESC
+        LIMIT ?;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    int result = sqlite3_prepare_v2(
+        database_.getConnection(),
+        sql,
+        -1,
+        &statement,
+        nullptr
+    );
+
+    if (result != SQLITE_OK)
+    {
+        throw std::runtime_error(
+            "Failed to prepare recent Service Requests statement: " +
+            std::string(sqlite3_errmsg(database_.getConnection()))
+        );
+    }
+
+    result = sqlite3_bind_int(statement, 1, limit);
+
+    if (result != SQLITE_OK)
+    {
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to bind recent Service Requests limit.");
+    }
+
+    result = sqlite3_step(statement);
+
+    while (result == SQLITE_ROW)
+    {
+        serviceRequests.push_back(mapRowToServiceRequest(statement));
+        result = sqlite3_step(statement);
+    }
+
+    if (result != SQLITE_DONE)
+    {
+        std::string errorMessage =
+            sqlite3_errmsg(database_.getConnection());
+
+        sqlite3_finalize(statement);
+
+        throw std::runtime_error(
+            "Failed to list recent Service Requests: " + errorMessage
+        );
+    }
+
+    sqlite3_finalize(statement);
+
+    return serviceRequests;
 }

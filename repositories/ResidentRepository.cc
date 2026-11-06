@@ -22,6 +22,36 @@ namespace
 
         return escaped;
     }
+    int queryCount(sqlite3* connection, const char* sql, const std::string* status)
+    {
+        sqlite3_stmt* statement = nullptr;
+        int result = sqlite3_prepare_v2(connection, sql, -1, &statement, nullptr);
+        if (result != SQLITE_OK)
+        {
+            throw std::runtime_error(
+                "Failed to prepare COUNT statement: " +
+                std::string(sqlite3_errmsg(connection)));
+        }
+        if (status != nullptr)
+        {
+            result = sqlite3_bind_text(statement, 1, status->c_str(), -1, SQLITE_TRANSIENT);
+            if (result != SQLITE_OK)
+            {
+                sqlite3_finalize(statement);
+                throw std::runtime_error("Failed to bind COUNT status.");
+            }
+        }
+        result = sqlite3_step(statement);
+        if (result != SQLITE_ROW)
+        {
+            std::string errorMessage = sqlite3_errmsg(connection);
+            sqlite3_finalize(statement);
+            throw std::runtime_error("Failed to run COUNT statement: " + errorMessage);
+        }
+        const int count = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+        return count;
+    }
 }
 
 ResidentRepository::ResidentRepository(Database& database)
@@ -557,4 +587,20 @@ bool ResidentRepository::deactivateById(int residentId)
     sqlite3_finalize(statement);
  
     return sqlite3_changes(database_.getConnection()) > 0;
+}
+
+int ResidentRepository::countAll()
+{
+    return queryCount(
+        database_.getConnection(),
+        "SELECT COUNT(*) FROM residents;",
+        nullptr);
+}
+
+int ResidentRepository::countByStatus(const std::string& status)
+{
+    return queryCount(
+        database_.getConnection(),
+        "SELECT COUNT(*) FROM residents WHERE status = ?;",
+        &status);
 }
