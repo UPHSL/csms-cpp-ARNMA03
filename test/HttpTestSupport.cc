@@ -4,6 +4,9 @@
 
 #include <cstdio>
 #include <utility>
+#include <sqlite3.h>
+#include <sstream>
+#include <vector>
 
 namespace
 {
@@ -70,4 +73,57 @@ TestAppFixture::~TestAppFixture()
 AppContext& TestAppFixture::context()
 {
     return *context_;
+}
+
+std::string databaseSnapshot(TestAppFixture& fixture)
+{
+    sqlite3* db = nullptr;
+    if (sqlite3_open_v2(fixture.databasePath().c_str(), &db,
+                        SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK)
+    {
+        const std::string err = db ? sqlite3_errmsg(db) : "unknown error";
+        if (db) sqlite3_close(db);
+        return "<snapshot failed: " + err + ">";
+    }
+
+    std::vector<std::string> tables;
+    sqlite3_stmt* st = nullptr;
+    if (sqlite3_prepare_v2(db,
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+            -1, &st, nullptr) == SQLITE_OK)
+    {
+        while (sqlite3_step(st) == SQLITE_ROW)
+        {
+            tables.emplace_back(
+                reinterpret_cast<const char*>(sqlite3_column_text(st, 0)));
+        }
+    }
+    sqlite3_finalize(st);
+
+    std::ostringstream out;
+    for (const auto& table : tables)
+    {
+        out << "[" << table << "]\n";
+        const std::string sql = "SELECT * FROM \"" + table + "\" ORDER BY rowid";
+        st = nullptr;
+        if (sqlite3_prepare_v2(db, sql.c_str(), -1, &st, nullptr) != SQLITE_OK)
+        {
+            sqlite3_finalize(st);
+            out << "<unreadable>\n";
+            continue;
+        }
+        const int cols = sqlite3_column_count(st);
+        while (sqlite3_step(st) == SQLITE_ROW)
+        {
+            for (int c = 0; c < cols; ++c)
+            {
+                const auto* text = sqlite3_column_text(st, c);
+                out << (text ? reinterpret_cast<const char*>(text) : "NULL") << '|';
+            }
+            out << '\n';
+        }
+        sqlite3_finalize(st);
+    }
+    sqlite3_close(db);
+    return out.str();
 }

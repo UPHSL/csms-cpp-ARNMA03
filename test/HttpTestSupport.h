@@ -38,8 +38,11 @@ public:
     TestAppFixture& operator=(const TestAppFixture&) = delete;
 
     AppContext& context();
+    const std::string& databasePath() const { return databasePath_; }
 
 private:
     std::string databasePath_;
     std::shared_ptr<AppContext> context_;
 };
+
+std::string databaseSnapshot(TestAppFixture& fixture);

@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
     HttpTestSupport.cc
     DashboardServiceTests.cc
     DashboardUiTests.cc
+    HardeningTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
