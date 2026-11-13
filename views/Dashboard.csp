@@ -1,0 +1,64 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+#include <vector>
+#include "models/ServiceRequest.h"
+%>
+<%c++
+auto residentTotal = @@.get<std::string>("residentTotal");
+auto residentActive = @@.get<std::string>("residentActive");
+auto residentInactive = @@.get<std::string>("residentInactive");
+auto requestTotal = @@.get<std::string>("requestTotal");
+auto requestOpen = @@.get<std::string>("requestOpen");
+auto requestPending = @@.get<std::string>("requestPending");
+auto requestInProgress = @@.get<std::string>("requestInProgress");
+auto requestCompleted = @@.get<std::string>("requestCompleted");
+auto requestCancelled = @@.get<std::string>("requestCancelled");
+auto recentRequests = @@.get<std::vector<ServiceRequest>>("recentRequests");
+%>
+<%view LayoutHeader %>
+<h2>Residents</h2>
+<table>
+  <tr><th>Total Residents</th><td>{% drogon::HttpViewData::htmlTranslate(residentTotal) %}</td></tr>
+  <tr><th>Active Residents</th><td>{% drogon::HttpViewData::htmlTranslate(residentActive) %}</td></tr>
+  <tr><th>Inactive Residents</th><td>{% drogon::HttpViewData::htmlTranslate(residentInactive) %}</td></tr>
+</table>
+<h2>Service Requests</h2>
+<table>
+  <tr><th>Total Service Requests</th><td>{% drogon::HttpViewData::htmlTranslate(requestTotal) %}</td></tr>
+  <tr><th>Open Service Requests</th><td>{% drogon::HttpViewData::htmlTranslate(requestOpen) %}</td></tr>
+  <tr><th>Pending</th><td>{% drogon::HttpViewData::htmlTranslate(requestPending) %}</td></tr>
+  <tr><th>In Progress</th><td>{% drogon::HttpViewData::htmlTranslate(requestInProgress) %}</td></tr>
+  <tr><th>Completed</th><td>{% drogon::HttpViewData::htmlTranslate(requestCompleted) %}</td></tr>
+  <tr><th>Cancelled</th><td>{% drogon::HttpViewData::htmlTranslate(requestCancelled) %}</td></tr>
+</table>
+<h2>Recent Service Requests</h2>
+<%c++ if (recentRequests.empty()) { %>
+<p>No Service Requests available.</p>
+<%c++ } else { %>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Resident ID</th>
+      <th>Service Type</th>
+      <th>Date Requested</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+<%c++ for (const auto& sr : recentRequests) { %>
+    <tr>
+      <td>{% std::to_string(sr.getId().value_or(0)) %}</td>
+      <td>{% std::to_string(sr.getResidentId()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getServiceType()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getDateRequested()) %}</td>
+      <td>{% drogon::HttpViewData::htmlTranslate(sr.getStatus()) %}</td>
+      <td><a href="/service-requests/{% std::to_string(sr.getId().value_or(0)) %}">View</a></td>
+    </tr>
+<%c++ } %>
+  </tbody>
+</table>
+<%c++ } %>
+<%view LayoutFooter %>

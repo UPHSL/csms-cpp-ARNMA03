@@ -1,17 +1,15 @@
 #pragma once
 
-#include <drogon/HttpSimpleController.h>
+#include <drogon/HttpController.h>
 
-using namespace drogon;
-
-class HealthController : public HttpSimpleController<HealthController>
+class HealthController : public drogon::HttpController<HealthController>
 {
 public:
-    void asyncHandleHttpRequest(
-        const HttpRequestPtr& req,
-        std::function<void(const HttpResponsePtr&)>&& callback) override;
+    METHOD_LIST_BEGIN
+    ADD_METHOD_TO(HealthController::health, "/health", drogon::Get);
+    METHOD_LIST_END
 
-    PATH_LIST_BEGIN
-    PATH_ADD("/health", Get);
-    PATH_LIST_END
+    void health(
+        const drogon::HttpRequestPtr& request,
+        std::function<void(const drogon::HttpResponsePtr&)>&& callback);
 };

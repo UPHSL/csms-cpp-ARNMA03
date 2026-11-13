@@ -1,16 +1,19 @@
 #include "HealthController.h"
 
-void HealthController::asyncHandleHttpRequest(
-    const HttpRequestPtr&,
-    std::function<void(const HttpResponsePtr&)>&& callback)
+#include <json/json.h>
+
+#include "app/AppInfo.h"
+
+void HealthController::health(
+    const drogon::HttpRequestPtr&,
+    std::function<void(const drogon::HttpResponsePtr&)>&& callback)
 {
-    Json::Value result;
+    // Identity and availability only. No paths, config, or database details.
+    Json::Value body;
+    body["application"] = AppInfo::kShortName;
+    body["name"] = AppInfo::kFullName;
+    body["version"] = AppInfo::kVersion;
+    body["status"] = "OK";
 
-    result["status"] = "ok";
-    result["application"] = "Community Services Management System";
-    result["version"] = "0.1.0";
-
-    auto response = HttpResponse::newHttpJsonResponse(result);
-
-    callback(response);
+    callback(drogon::HttpResponse::newHttpJsonResponse(body));
 }

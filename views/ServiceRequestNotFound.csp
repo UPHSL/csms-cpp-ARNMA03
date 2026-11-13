@@ -1,0 +1,11 @@
+<%inc
+#include <drogon/HttpViewData.h>
+#include <string>
+%>
+<%c++
+auto message = @@.get<std::string>("message");
+%>
+<%view LayoutHeader %>
+<p class="error">{% drogon::HttpViewData::htmlTranslate(message) %}</p>
+<p><a href="/service-requests">Back to Service Requests</a></p>
+<%view LayoutFooter %>
