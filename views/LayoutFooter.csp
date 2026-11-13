@@ -1,3 +1,9 @@
+<%inc
+#include "app/AppInfo.h"
+%>
 </main>
+<footer>
+  <p>{% AppInfo::kFullName %} &middot; v{% AppInfo::kVersion %}</p>
+</footer>
 </body>
 </html>
