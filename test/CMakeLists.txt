@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     DashboardServiceTests.cc
     DashboardUiTests.cc
     HardeningTests.cc
+    FinalReleaseTests.cc
     ../models/Resident.cc
     ../models/ResidentValidator.cc
     ../database/Database.cc
@@ -39,6 +40,8 @@ add_executable(${PROJECT_NAME}
     ../controllers/ResidentController.cc
     ../controllers/ServiceRequestController.cc
     ../controllers/DashboardController.cc
+    ../controllers/HealthController.cc
+    ../controllers/HomeController.cc
 )
 
 # Repo root, so generated views can include "models/Resident.h" like the app does.

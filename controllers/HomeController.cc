@@ -1,4 +1,7 @@
 #include "HomeController.h"
+#include "app/AppInfo.h"
+
+#include <string>
 
 void HomeController::asyncHandleHttpRequest(
     const HttpRequestPtr&,
@@ -87,13 +90,13 @@ void HomeController::asyncHandleHttpRequest(
         <h1>Community Services<br>Management System</h1>
 
         <p class="message">
-            Starter application initialized successfully.
+            CSMS is running.
         </p>
 
         <section class="details">
             <div class="detail">
                 <strong>Current Sprint</strong>
-                Sprint 0 - Developer Onboarding
+                Sprint 6 - Final Release
             </div>
 
             <div class="detail">
@@ -103,10 +106,16 @@ void HomeController::asyncHandleHttpRequest(
 
             <div class="detail">
                 <strong>Version</strong>
-                0.1.0
+                v)" + std::string(AppInfo::kVersion) + R"(
             </div>
         </section>
 
+        <p>
+            <a href="/dashboard">Dashboard</a> |
+            <a href="/residents">Residents</a> |
+            <a href="/service-requests">Service Requests</a>
+        </p>
+        
         <p class="status">Environment status: Ready</p>
     </main>
 </body>
